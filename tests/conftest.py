@@ -49,6 +49,9 @@ def config_file(isolated_env):
                 "base_url": "https://llm.test/v1",
             },
             "deepgram": {"api_key": "dg-test-0123456789abcdef"},
+            # Los tests usan el disco real del equipo. Fijamos el mínimo en 0 para que
+            # pipeline.start_session no falle por espacio cuando el disco está justo.
+            "settings": {"min_free_space_mb": 0},
         }
         for section, values in overrides.items():
             payload.setdefault(section, {}).update(values)
