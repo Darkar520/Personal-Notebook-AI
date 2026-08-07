@@ -7,6 +7,7 @@
 
   "opencode": {
     "base_url": "https://opencode.ai/zen/go/v1",
+    "_base_url_zen": "usa https://opencode.ai/zen/v1 si tienes OpenCode Zen (pago por uso)",
     "api_key": "",
     "models": {
       "live": "deepseek-v4-flash",

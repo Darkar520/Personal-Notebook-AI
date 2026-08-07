@@ -58,14 +58,53 @@ export async function renderSettings(container) {
       text: 'Se guardan solo en config.local.json, en tu equipo, con permisos restringidos. '
         + 'Deja el campo vacío para conservar la llave que ya tienes.',
     }),
-    keyField('OpenCode Go (modelos de texto)', 'opencode', config, field),
+    keyField('OpenCode Go / Zen (modelos de texto)', 'opencode', config, field),
     keyField('Deepgram (transcripción con diarización)', 'deepgram', config, field),
     keyField('Gemini (opcional, transcripción de respaldo)', 'gemini', config, field),
     el('label', {}, [
-      'URL base de OpenCode',
-      field('opencode.base_url', el('input', {
-        type: 'url', value: config.opencode.base_url,
-      })),
+      'Proveedor de modelos',
+      el('span', {
+        class: 'hint',
+        text: 'Elige el plan que tienes. La URL base se configura automáticamente. '
+          + 'OpenCode Go = suscripción mensual plana. '
+          + 'OpenCode Zen = pago por uso (créditos). '
+          + 'Ambos usan la misma llave de API.',
+      }),
+      (() => {
+        const PROVIDERS = [
+          ['https://opencode.ai/zen/go/v1', 'OpenCode Go (suscripción mensual — recomendado si ya tienes Go)'],
+          ['https://opencode.ai/zen/v1',    'OpenCode Zen (pago por uso con créditos)'],
+          ['custom', 'URL personalizada…'],
+        ];
+        const currentUrl = config.opencode.base_url || 'https://opencode.ai/zen/go/v1';
+        const knownUrls = PROVIDERS.slice(0, 2).map(([v]) => v);
+        const isCustom = !knownUrls.includes(currentUrl);
+
+        const providerSelect = el('select', {});
+        for (const [value, label] of PROVIDERS) {
+          providerSelect.append(el('option', { value, text: label }));
+        }
+        providerSelect.value = isCustom ? 'custom' : currentUrl;
+
+        const urlInput = field('opencode.base_url', el('input', {
+          type: 'url',
+          value: currentUrl,
+          hidden: !isCustom,
+          placeholder: 'https://…',
+        }));
+
+        providerSelect.addEventListener('change', () => {
+          if (providerSelect.value === 'custom') {
+            urlInput.hidden = false;
+            urlInput.value = currentUrl;
+          } else {
+            urlInput.hidden = true;
+            urlInput.value = providerSelect.value;
+          }
+        });
+
+        return el('div', { class: 'stack' }, [providerSelect, urlInput]);
+      })(),
     ]),
   ]);
 
@@ -365,7 +404,10 @@ function minutesHint(path, fields) {
   const update = () => {
     const node = fields.get(path);
     const value = Number(node?.value) || 0;
-    span.textContent = value ? `≈ ${value} min` : '';
+    if (!value) { span.textContent = ''; return; }
+    // chunk_seconds se mide en segundos, no en minutos
+    const mins = Math.round(value / 60 * 10) / 10;
+    span.textContent = value < 60 ? `≈ ${value} s` : `≈ ${mins} min`;
   };
   // Se actualiza al cambiar el input (se enlaza después de montar).
   setTimeout(() => {
