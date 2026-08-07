@@ -37,7 +37,8 @@ export async function renderSettings(container) {
       settingsApi.system().catch(() => null),
       settingsApi.devices().catch(() => ({})),
     ]);
-    catalog = await settingsApi.models(false).catch(() => []);
+    const modelsData = await settingsApi.models(false).catch(() => ({ catalog: [] }));
+    catalog = modelsData.catalog || [];
   } catch (error) {
     reportError(error);
     mount(container, notice('No se pudo cargar', error.message, 'notice-error'));
