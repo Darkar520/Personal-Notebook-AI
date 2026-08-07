@@ -139,6 +139,27 @@ def create_app(*, serve_static: bool = True) -> FastAPI:
         if gadget_dir.exists():
             app.mount("/gadget", StaticFiles(directory=str(gadget_dir), html=True),
                       name="gadget")
+
+        # Middleware que fuerza revalidación de estáticos para que los cambios
+        # en JS/CSS se vean sin necesidad de Ctrl+F5.
+        @app.middleware("http")
+        async def no_cache_static(request: Request, call_next):
+            response = await call_next(request)
+            path = request.url.path
+            if (
+                not path.startswith("/api")
+                and not path.startswith("/ws")
+                and not path.startswith("/gadget")
+                and not path.startswith("/health")
+                and (path.endswith(".js")
+                     or path.endswith(".css")
+                     or path.endswith(".mjs")
+                     or path.endswith(".html")
+                     or path == "/")
+            ):
+                response.headers.setdefault("Cache-Control", "no-cache, must-revalidate")
+            return response
+
         # La SPA va al final: así no captura las rutas de /api.
         app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="spa")
 
