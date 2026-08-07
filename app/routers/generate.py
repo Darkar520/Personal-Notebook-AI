@@ -291,11 +291,14 @@ def generate_podcast(session_id: int, cfg: dict[str, Any] | None = None) -> dict
                 "SELECT title, context_md FROM roleplays WHERE session_id=?", (session_id,)
             )
         ]
+    minutes = int(cfg["settings"].get("podcast_minutes", 15))
+    if not 2 <= minutes <= 240:
+        raise HTTPException(422, "La duración del podcast debe estar entre 2 y 240 minutos")
     result = podcast_ai.generate_podcast(
         topics=topics,
         roleplays=roleplays,
         session_title=row["title"] or "",
-        minutes=int(cfg["settings"].get("podcast_minutes", 4)),
+        minutes=minutes,
         out_dir=paths.session_dir(session_id) / "podcast",
         session_id=session_id,
         pricing=cfg.get("pricing"),

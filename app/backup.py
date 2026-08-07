@@ -21,6 +21,7 @@ from __future__ import annotations
 import json
 import logging
 import shutil
+import time
 import zipfile
 from pathlib import Path
 from typing import Any
@@ -34,6 +35,7 @@ MANIFEST = "manifest.json"
 PAYLOAD = "session.json"
 NOTES = "notes.md"
 FILES_PREFIX = "files/"
+EXPORT_MAX_AGE_SECONDS = 7 * 24 * 3600  # 7 días
 
 CHILD_TABLES = (
     "topics",
@@ -56,6 +58,30 @@ class BackupError(NotebookError):
 
 def _columns(conn, table: str) -> list[str]:
     return [str(r["name"]) for r in conn.execute(f"PRAGMA table_info({table})")]
+
+
+def cleanup_exports(*, max_age_seconds: int = EXPORT_MAX_AGE_SECONDS) -> int:
+    """Borra ZIPs de `data/exports/` con más de `max_age_seconds`.
+
+    Los exports se acumulan en disco sin límite; un usuario que exporte varios
+    cuadernos de 75 MB puede llenar el disco sin darse cuenta. Se ejecuta al
+    arrancar (lifespan) y es idempotente.
+    """
+    folder = paths.data_dir() / "exports"
+    if not folder.exists():
+        return 0
+    cutoff = time.time() - max_age_seconds
+    removed = 0
+    for item in folder.iterdir():
+        try:
+            if item.is_file() and item.suffix.lower() == ".zip" and item.stat().st_mtime < cutoff:
+                item.unlink()
+                removed += 1
+        except OSError:  # pragma: no cover - defensivo
+            log.warning("No se pudo borrar el export %s", item)
+    if removed:
+        log.info("Limpieza de exports: %d ZIPs antiguos borrados", removed)
+    return removed
 
 
 # ---------------------------------------------------------------------------

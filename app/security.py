@@ -78,6 +78,21 @@ def read_or_create_token() -> str:
     return token
 
 
+def check_websocket_origin(host_header: str | None, origin: str | None, *, port: int) -> bool:
+    """Valida Host y Origin para el handshake de WebSocket.
+
+    `BaseHTTPMiddleware` no envuelve el protocolo WebSocket en Starlette, así que el
+    guard local no se aplica a `/ws`. Este check replica la misma política de
+    `LocalGuardMiddleware` para que un cliente malicioso no pueda leer la transcripción
+    en vivo a través del socket.
+    """
+    if not _host_is_local(host_header):
+        return False
+    if origin and origin not in allowed_origins(port):
+        return False
+    return True
+
+
 class LocalGuardMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, *, port: int = 8787, require_token: bool = False) -> None:
         super().__init__(app)

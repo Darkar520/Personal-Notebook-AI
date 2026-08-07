@@ -66,11 +66,11 @@ DEFAULTS: dict[str, Any] = {
         "auto_generate_all": False,
         "integration_interval_sec": 300,
         "integration_min_words": 1200,
-        "break_min_seconds": 45,
+        "break_min_seconds": 60,
         "min_free_space_mb": 2048,
         "stt_backend": "deepgram",        # deepgram | whisper | gemini
         "stt_concurrency": 2,
-        "podcast_minutes": 4,
+        "podcast_minutes": 15,
         "log_level": "INFO",
         "onboarding_done": False,
         "legal_notice_seen": False,

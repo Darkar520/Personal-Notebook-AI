@@ -240,6 +240,9 @@ def export_session(sid: int):
     )
 
 
+MAX_RESTORE_BYTES = 500 * 1024 * 1024  # 500 MB
+
+
 @system_router.post("/backup/restore")
 async def restore_backup(file: UploadFile = File(...)):
     if not (file.filename or "").lower().endswith(".zip"):
@@ -247,8 +250,15 @@ async def restore_backup(file: UploadFile = File(...)):
     tmp_dir = Path(tempfile.mkdtemp(prefix="notebook-restore-"))
     tmp_zip = tmp_dir / "backup.zip"
     try:
+        total = 0
         with tmp_zip.open("wb") as handle:
             while block := await file.read(1024 * 1024):
+                total += len(block)
+                if total > MAX_RESTORE_BYTES:
+                    raise HTTPException(
+                        413,
+                        "El backup supera el tamaño máximo permitido (500 MB).",
+                    )
                 handle.write(block)
         session_id = backup.restore_session(tmp_zip)
     except NotebookError as exc:

@@ -25,10 +25,10 @@ from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from app import __version__, config as app_config, db, logging_setup, paths, pipeline, runtime
+from app import __version__, backup, config as app_config, db, logging_setup, paths, pipeline, runtime
 from app.errors import ConfigError, NotebookError, ProviderError, SessionStateError
 from app.routers import chat, content, generate, media, sessions, settings, speakers
-from app.security import LocalGuardMiddleware
+from app.security import LocalGuardMiddleware, check_websocket_origin
 from app.ws import hub
 
 log = logging.getLogger(__name__)
@@ -40,6 +40,10 @@ async def lifespan(app: FastAPI):
     logging_setup.setup_logging(str(cfg["settings"].get("log_level", "INFO")))
     log.info("Personal Notebook AI %s — datos en %s", __version__, paths.data_dir())
     db.init_db()
+    try:
+        backup.cleanup_exports()
+    except Exception:  # noqa: BLE001 - la limpieza nunca debe impedir el arranque
+        log.exception("Fallo en la limpieza de exports")
     hub.bind_loop(asyncio.get_running_loop())
     try:
         orphans = pipeline.recover_orphans()
@@ -102,6 +106,16 @@ def create_app(*, serve_static: bool = True) -> FastAPI:
 
     @app.websocket("/ws")
     async def websocket_endpoint(websocket: WebSocket):
+        # `LocalGuardMiddleware` (BaseHTTPMiddleware) no envuelve WebSockets en Starlette:
+        # validamos aquí Host y Origin para que un cliente malicioso no pueda leer la
+        # transcripción en vivo a través del socket.
+        if not check_websocket_origin(
+            websocket.headers.get("host"),
+            websocket.headers.get("origin"),
+            port=int(server.get("port", 8787)),
+        ):
+            await websocket.close(code=1008, reason="Origen no permitido")
+            return
         await hub.connect(websocket)
         try:
             await websocket.send_json(
