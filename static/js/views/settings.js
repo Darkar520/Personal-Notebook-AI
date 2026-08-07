@@ -68,25 +68,7 @@ export async function renderSettings(container) {
     ]),
   ]);
 
-  const modelsSection = el('fieldset', { id: 'models-section' }, [
-    el('legend', { text: 'Modelos' }),
-    el('p', {
-      class: 'mono',
-      text: 'Elige el modelo de cada tarea desde el catálogo real del proveedor. '
-        + 'Si el identificador no existe, la app busca el más parecido en lugar de fallar.',
-    }),
-    ...MODEL_ROLES.map(([role, label]) =>
-      modelField(role, label, config, field, catalog)),
-    el('div', { class: 'btn-row' }, [
-      el('button', {
-        class: 'btn btn-sm', type: 'button', id: 'refresh-models',
-      }, ['↻ Actualizar catálogo']),
-      el('button', {
-        class: 'btn btn-sm', type: 'button', id: 'show-models',
-      }, ['Ver catálogo de modelos']),
-    ]),
-    el('div', { id: 'models-output' }),
-  ]);
+  const modelsSection = createModelsSection(catalog, config, field);
 
   const audioSection = el('fieldset', {}, [
     el('legend', { text: 'Audio y captura' }),
@@ -264,40 +246,6 @@ export async function renderSettings(container) {
     ]),
   );
 
-  container.querySelector('#refresh-models').addEventListener('click', async (event) => {
-    await withBusy(event.currentTarget, async () => {
-      try {
-        const data = await settingsApi.models(true);
-        const fresh = data.catalog || [];
-        const section = container.querySelector('#models-section');
-        const rebuilt = el('fieldset', { id: 'models-section' }, [
-          el('legend', { text: 'Modelos' }),
-          el('p', {
-            class: 'mono',
-            text: 'Elige el modelo de cada tarea desde el catálogo real del proveedor. '
-              + 'Si el identificador no existe, la app busca el más parecido en lugar de fallar.',
-          }),
-          ...MODEL_ROLES.map(([role, label]) =>
-            modelField(role, label, config, field, fresh)),
-          el('div', { class: 'btn-row' }, [
-            el('button', {
-              class: 'btn btn-sm', type: 'button', id: 'refresh-models',
-            }, ['↻ Actualizar catálogo']),
-            el('button', {
-              class: 'btn btn-sm', type: 'button', id: 'show-models',
-            }, ['Ver catálogo de modelos']),
-          ]),
-          el('div', { id: 'models-output' }),
-        ]);
-        section.replaceWith(rebuilt);
-        bindModelsButtons(container, config, field);
-        toast(`Catálogo actualizado (${fresh.length} modelos)`, 'success');
-      } catch (error) {
-        reportError(error);
-      }
-    });
-  });
-
   container.querySelector('#apply-recommended').addEventListener('click', () => {
     for (const [path, value] of Object.entries(RECOMMENDED_3_5H)) {
       const node = fields.get(path);
@@ -308,15 +256,57 @@ export async function renderSettings(container) {
     toast('Configuración recomendada aplicada. Revisa y pulsa «Guardar ajustes».', 'info');
   });
 
-  bindModelsButtons(container, config, field);
+  bindModelsEvents(container, config, field);
 }
 
 /* ------------------------------------------------------------------ helpers */
 
-function bindModelsButtons(container, config, field) {
+function createModelsSection(catalog, config, field) {
+  return el('fieldset', { id: 'models-section' }, [
+    el('legend', { text: 'Modelos' }),
+    el('p', {
+      class: 'mono',
+      text: 'Elige el modelo de cada tarea desde el catálogo real del proveedor. '
+        + 'Si el identificador no existe, la app busca el más parecido en lugar de fallar.',
+    }),
+    ...MODEL_ROLES.map(([role, label]) => modelField(role, label, config, field, catalog)),
+    el('div', { class: 'btn-row' }, [
+      el('button', {
+        class: 'btn btn-sm', type: 'button', id: 'refresh-models',
+      }, ['↻ Actualizar catálogo']),
+      el('button', {
+        class: 'btn btn-sm', type: 'button', id: 'show-models',
+      }, ['Ver catálogo de modelos']),
+    ]),
+    el('div', { id: 'models-output' }),
+  ]);
+}
+
+/**
+ * Enlaza los botones del catálogo. Debe llamarse SIEMPRE después de crear o
+ * reemplazar `#models-section`, porque `replaceWith` elimina los listeners
+ * de los nodos anteriores.
+ */
+function bindModelsEvents(container, config, field) {
+  const refreshBtn = container.querySelector('#refresh-models');
+  refreshBtn?.addEventListener('click', async (event) => {
+    await withBusy(event.currentTarget, async () => {
+      try {
+        const data = await settingsApi.models(true);
+        const fresh = data.catalog || [];
+        const section = container.querySelector('#models-section');
+        section.replaceWith(createModelsSection(fresh, config, field));
+        // Re-enlazar: los botones nuevos no tienen listeners tras replaceWith.
+        bindModelsEvents(container, config, field);
+        toast(`Catálogo actualizado (${fresh.length} modelos)`, 'success');
+      } catch (error) {
+        reportError(error);
+      }
+    });
+  });
+
   const showBtn = container.querySelector('#show-models');
-  if (!showBtn) return;
-  showBtn.addEventListener('click', async (event) => {
+  showBtn?.addEventListener('click', async (event) => {
     const output = container.querySelector('#models-output');
     await withBusy(event.currentTarget, async () => {
       try {
