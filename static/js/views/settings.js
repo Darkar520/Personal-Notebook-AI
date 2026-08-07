@@ -16,7 +16,7 @@ const MODEL_ROLES = [
 // Valores recomendados para clases de 3,5 h (CAMBIO 3).
 const RECOMMENDED_3_5H = {
   'settings.integration_interval_sec': 5,   // minutos en la UI
-  'settings.break_min_seconds': 1,          // minutos en la UI
+  'settings.break_min_seconds': 5,          // minutos en la UI
   'settings.podcast_minutes': 15,
   'settings.auto_generate_all': true,
   'settings.keep_raw_audio': false,
@@ -136,11 +136,11 @@ export async function renderSettings(container) {
         + 'revísalos y pulsa «Guardar ajustes».',
     }),
     el('label', {}, [
-      'Cada cuántos minutos se actualizan las notas en vivo',
+      'Cada cuántos minutos se actualizan las notas y resúmenes en vivo',
       el('span', {
         class: 'hint',
-        text: '5 min es el balance óptimo: las notas se ven casi en tiempo real sin gastar '
-          + 'llamadas al modelo. Bajar a 1 min multiplica el costo por 5.',
+        text: 'Se configura en minutos. Cada 5 min es el balance recomendado: las notas y '
+          + 'resúmenes se actualizan con frecuencia sin gastar llamadas innecesarias al modelo.',
       }),
       field('settings.integration_interval_sec', el('input', {
         type: 'number', min: '1', max: '30', step: '1',
@@ -151,9 +151,9 @@ export async function renderSettings(container) {
       'Pausa mínima para marcar un receso (minutos)',
       el('span', {
         class: 'hint',
-        text: '45 s detecta los recesos reales de clase sin confundirlos con silencios '
-          + 'cortos entre preguntas. Bajar a 20 s genera falsos recesos; subir a 3 min '
-          + 'puede perder recesos cortos.',
+        text: 'Se configura en minutos. 5 min significa que deben pasar al menos cinco '
+          + 'minutos sin actividad para marcar un receso, evitando confundir silencios '
+          + 'cortos entre preguntas con una pausa real.',
       }),
       field('settings.break_min_seconds', el('input', {
         type: 'number', min: '1', max: '10', step: '1',
