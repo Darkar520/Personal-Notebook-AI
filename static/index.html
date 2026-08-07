@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Personal Notebook AI</title>
+  <link rel="stylesheet" href="/app.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+  <a class="skip-link" href="#view">Ir al contenido</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <span aria-hidden="true">📚</span>
+      <h1>Personal Notebook AI</h1>
+    </div>
+
+    <nav aria-label="Secciones">
+      <a href="#/" data-nav="sessions">Cuadernos</a>
+      <a href="#/people" data-nav="people">Personas</a>
+      <a href="#/settings" data-nav="settings">Ajustes</a>
+    </nav>
+
+    <div class="topbar-actions">
+      <output id="status-pill" class="pill pill-idle" aria-live="polite">Sin sesión activa</output>
+      <button id="capture-toggle" class="btn btn-primary" type="button">▶ Iniciar clase</button>
+    </div>
+  </header>
+
+  <main id="view" tabindex="-1"></main>
+
+  <!-- Reproductor único de la sesión: permite saltar a cualquier instante -->
+  <aside id="player" class="player" hidden aria-label="Reproductor de la clase">
+    <button id="player-toggle" class="btn btn-icon" type="button" aria-label="Reproducir o pausar">▶</button>
+    <div class="player-meta">
+      <strong id="player-label">Audio de la clase</strong>
+      <input id="player-seek" type="range" min="0" max="100" value="0" step="0.1"
+             aria-label="Posición de reproducción">
+      <span id="player-time" class="mono">0:00 / 0:00</span>
+    </div>
+    <label class="player-speed">
+      Velocidad
+      <select id="player-rate" aria-label="Velocidad de reproducción">
+        <option value="0.75">0,75×</option>
+        <option value="1" selected>1×</option>
+        <option value="1.25">1,25×</option>
+        <option value="1.5">1,5×</option>
+        <option value="2">2×</option>
+      </select>
+    </label>
+    <button id="player-close" class="btn btn-ghost btn-icon" type="button" aria-label="Cerrar reproductor">✕</button>
+    <audio id="player-audio" preload="metadata"></audio>
+  </aside>
+
+  <div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
+  <div id="modal-root"></div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

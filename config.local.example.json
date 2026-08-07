@@ -1,0 +1,73 @@
+{
+  "_readme": [
+    "Copia este archivo como 'config.local.json' y pega tus llaves.",
+    "config.local.json esta excluido de git y es el UNICO lugar donde viven los secretos.",
+    "Todo lo que no pongas aqui toma el valor por defecto de app/config.py."
+  ],
+
+  "opencode": {
+    "base_url": "https://opencode.ai/zen/go/v1",
+    "api_key": "",
+    "models": {
+      "live": "deepseek-v4-flash",
+      "polish": "deepseek-v4-pro",
+      "chat": "deepseek-v4-flash",
+      "podcast": "deepseek-v4-flash",
+      "study": "deepseek-v4-flash"
+    },
+    "model_fallbacks": {
+      "live": ["deepseek-v4-flash", "deepseek-v3.2-flash", "glm-5.2-air", "*flash*", "*mini*"],
+      "polish": ["deepseek-v4-pro", "deepseek-v4-flash", "glm-5.2", "*pro*", "*flash*"],
+      "chat": ["deepseek-v4-flash", "glm-5.2-air", "*flash*"],
+      "podcast": ["deepseek-v4-flash", "*flash*"],
+      "study": ["deepseek-v4-flash", "*flash*"]
+    }
+  },
+
+  "deepgram": {
+    "api_key": "",
+    "model": "nova-3",
+    "language": "en"
+  },
+
+  "gemini": {
+    "api_key": ""
+  },
+
+  "audio": {
+    "chunk_seconds": 90,
+    "overlap_seconds": 8,
+    "sample_rate": 16000,
+    "output_device_index": null,
+    "mic_device_index": null,
+    "mic_gain": 1.0
+  },
+
+  "settings": {
+    "capture_mode": "loopback+mic",
+    "keep_raw_audio": false,
+    "notes_language": "bilingue_inteligente",
+    "auto_generate_all": false,
+    "integration_interval_sec": 300,
+    "integration_min_words": 1200,
+    "break_min_seconds": 45,
+    "min_free_space_mb": 2048,
+    "stt_backend": "deepgram",
+    "stt_concurrency": 2,
+    "podcast_minutes": 4,
+    "log_level": "INFO",
+    "onboarding_done": false,
+    "legal_notice_seen": false
+  },
+
+  "pricing": {
+    "deepgram_usd_per_minute": 0.0058,
+    "llm_usd_per_1m_input": 0.28,
+    "llm_usd_per_1m_output": 0.42
+  },
+
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8787
+  }
+}

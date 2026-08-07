@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Notebook AI</title>
+  <link rel="stylesheet" href="/gadget/gadget.css">
+</head>
+<body>
+  <!-- La burbuja es el asa de arrastre (pywebview drag-region) y el disparador del menú. -->
+  <div id="bubble" class="idle" role="button" tabindex="0"
+       aria-label="Personal Notebook AI: estado de la grabación">
+    <span id="icon" aria-hidden="true">●</span>
+    <span id="timer" class="timer">0:00</span>
+  </div>
+
+  <div id="menu" class="menu" hidden>
+    <p id="detail" class="detail">Sin sesión activa</p>
+    <button id="btn-main" type="button" class="primary">▶ Iniciar clase</button>
+    <button id="btn-web" type="button">🌐 Abrir la plataforma</button>
+    <button id="btn-settings" type="button">⚙️ Ajustes</button>
+    <button id="btn-hide" type="button">🧹 Ocultar gadget</button>
+  </div>
+
+  <script src="/gadget/gadget.js"></script>
+</body>
+</html>

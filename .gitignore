@@ -1,0 +1,25 @@
+# --- Secretos y datos locales (NUNCA en git) ---
+config.local.json
+data/
+logs/
+*.token
+
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Medios sueltos en la raíz (los de data/ ya están excluidos) ---
+/*.wav
+/*.mp3
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
